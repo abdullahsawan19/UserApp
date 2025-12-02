@@ -1,12 +1,32 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  bio: string;
+}
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
-export class App {
-  protected readonly title = signal('frontend');
+export class App implements OnInit {
+  private http = inject(HttpClient);
+
+  users = signal<User[]>([]);
+
+  ngOnInit() {
+    this.http.get<User[]>('http://localhost:3000/api/users').subscribe({
+      next: (data) => {
+        this.users.set(data);
+        console.log('Users fetched:', data);
+      },
+      error: (err) => console.error('Error fetching users:', err),
+    });
+  }
 }
